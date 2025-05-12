@@ -5,6 +5,7 @@ set -euo pipefail
 RESOURCE_GROUP="mysourcegraph-rg"
 LOCATION="southcentralus"
 INSTANCE_NAME="mysourcegraph-vm"
+NSG_NAME="mysourcegraph-vmNSG"
 VM_SIZE="Standard_D8as_v5"  # 8 vCPUs, 32 GB memory (burstable)
 
 # Detect username (will use the same as local user)
@@ -47,11 +48,43 @@ fi
 echo "📦 Installing git and cloning repository on VM..."
 REPO_URL="https://github.com/rock-meister/mysourcegraph.git"
 DEPLOY_DIR="mysourcegraph"
-az vm run-command invoke \
-    --resource-group "$RESOURCE_GROUP" \
-    --name "$INSTANCE_NAME" \
-    --command-id RunShellScript \
-    --scripts "sudo apt-get update && sudo apt-get install -y git && rm -rf $DEPLOY_DIR && git clone $REPO_URL $DEPLOY_DIR"
+
+echo "manually run sudo apt-get update && rm -rf $DEPLOY_DIR && git clone $REPO_URL on the VM console"
+# az vm run-command invoke \
+#     --resource-group "$RESOURCE_GROUP" \
+#     --name "$INSTANCE_NAME" \
+#     --command-id RunShellScript \
+#     --scripts "sudo apt-get update && rm -rf $DEPLOY_DIR && git clone $REPO_URL"
+
+echo "manually add Network rule to allow HTTP and HTTPS via the Azure GUI"
+# echo "Adding network firewall rule for HTTP"
+# az network nsg rule create \
+#   --resource-group "$RESOURCE_GROUP" \
+#   --nsg-name "$NSG_NAME" \
+#   --name "Allow-HTTP" \
+#   --priority 1010 \
+#   --access Allow \
+#   --direction Inbound \
+#   --protocol Tcp \
+#   --source-address-prefixes '*' \
+#   --source-port-ranges '*' \
+#   --destination-address-prefixes '*' \
+#   --destination-port-ranges 80
+
+# echo "Adding network firewall rule for HTTPS"
+# az network nsg rule create \
+#   --resource-group "$RESOURCE_GROUP" \
+#   --nsg-name "$NSG_NAME" \
+#   --name "Allow-HTTPS" \
+#   --priority 1020 \
+#   --access Allow \
+#   --direction Inbound \
+#   --protocol Tcp \
+#   --source-address-prefixes '*' \
+#   --source-port-ranges '*' \
+#   --destination-address-prefixes '*' \
+#   --destination-port-ranges 443
+
 
 echo "✅ Resource allocation complete!"
 echo ""
